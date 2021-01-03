@@ -84,19 +84,19 @@ class Grammar:
         n = len(w)
         N = len(self.D)
         Q = np.full((n, n, N), False, dtype=bool)
-        for i in range(n):
-            for j in range(N):
-                if self.check_prod_rule((self.D[j], w[i])):
-                    Q[0, i, j] = True
-        for i in range(1, n):
-            for j in range(n-i+1):
-                for k in range(i-1):
-                    for a in range(N):
-                        for b in range(N):
-                            for c in range(N):
-                                if self.check_prod_rule((self.D[a], (self.D[b], self.D[c]))):
-                                    if (Q[k, j, b] and Q[i-k, j+k, c]):
-                                        Q[i, j, a] = True
+        for i in range(1, n+1):
+            for j in range(1, N+1):
+                if self.check_prod_rule((self.D[j-1], w[i-1])):
+                    Q[0, i-1, j-1] = True
+        for i in range(2, n+1):
+            for j in range(1, n-i+2):
+                for k in range(1, i):
+                    for a in range(1, N+1):
+                        for b in range(1, N+1):
+                            for c in range(1, N+1):
+                                if self.check_prod_rule((self.D[a-1], (self.D[b-1], self.D[c-1]))):
+                                    if (Q[k-1, j-1, b-1] and Q[i-k-1, j+k-1, c-1]):
+                                        Q[i-1, j-1, a-1] = True
         if Q[n-1, 0, 0]:
             return 'this word is producted by this grammar'
         else:
@@ -129,7 +129,7 @@ def main():
         # d0 -> d1 d1 | d2 d3
         'd0': [('d1', 'd1'), ('d2', 'd3')],
         #d1 -> d1 d1 | d2 d2
-        'd1': [('d1', 'd1'), ('d2', 'd2')],
+        'd1': [('d1', 'd1'), ('d2', 'd3')],
         'd2': '(',
         'd3': [('d1' , 'd4'), ')'],
         'd4': ')'
@@ -137,7 +137,7 @@ def main():
 
     # print( g.check_prod_rule( ('d0', ('d2', 'd1')) ) )
 
-    print(g.CYK('()'))
+    print(g.CYK('(()((())))'))
 
 
 if __name__ == '__main__':
