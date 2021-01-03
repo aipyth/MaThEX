@@ -95,7 +95,7 @@ class Grammar:
                         for b in range(N):
                             for c in range(N):
                                 if self.check_prod_rule((self.D[a], (self.D[b], self.D[c]))):
-                                    if Q[k, j, b] and Q[i-k, j+k, c]:
+                                    if (Q[k, j, b] and Q[i-k, j+k, c]):
                                         Q[i, j, a] = True
         if Q[n-1, 0, 0]:
             return 'this word is producted by this grammar'
@@ -138,6 +138,7 @@ def main():
     # print( g.check_prod_rule( ('d0', ('d2', 'd1')) ) )
 
     print(g.CYK('()'))
+
 
 if __name__ == '__main__':
     main()
