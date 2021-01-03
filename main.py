@@ -91,14 +91,16 @@ class Grammar:
         for i in range(2, n+1):
             for j in range(1, n-i+2):
                 for k in range(1, i):
-                    for a in range(1, N+1):
-                        for b in range(1, N+1):
-                            for c in range(1, N+1):
-                                if self.check_prod_rule((self.D[a-1], (self.D[b-1], self.D[c-1]))):
-                                    if (Q[k-1, j-1, b-1] and Q[i-k-1, j+k-1, c-1]):
-                                        Q[i-1, j-1, a-1] = True
+                    for element in self.P:
+                        a = int(element[1])
+                        for kortezh in self.P[element]:
+                            if type(kortezh) is tuple:
+                                b = int(kortezh[0][1])
+                                c = int(kortezh[1][1])
+                                if (Q[k-1, j-1, b] and Q[i-k-1, j+k-1, c]):
+                                    Q[i-1, j-1, a] = True
         if Q[n-1, 0, 0]:
-            return 'this word is producted by this grammar'
+            return 'this word is produced by this grammar'
         else:
             return 'this word is not produced by this grammar'
 
@@ -137,7 +139,7 @@ def main():
 
     # print( g.check_prod_rule( ('d0', ('d2', 'd1')) ) )
 
-    print(g.CYK('(()((())))'))
+    print(g.CYK('(()())'))
 
 
 if __name__ == '__main__':
