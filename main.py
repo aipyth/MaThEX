@@ -1,4 +1,5 @@
 import numpy as np
+from copy import deepcopy
 
 
 class Set:
@@ -23,6 +24,18 @@ class Set:
         return self._nodes[item]
 
 
+    def __add__(self, obj):
+        s = Set()
+        s._nodes = deepcopy(self._nodes)
+        for item in obj:
+            s.add(item)
+        return s
+
+
+    def index(self, item):
+        return self._nodes.index(item)
+
+
     def add(self, item):
         if item not in self._nodes:
             self._nodes.append(item)
@@ -43,8 +56,8 @@ class Grammar:
     P = {}   # set of production rules
 
 
-    def __init__(self):
-        pass
+    def __init__(self, P):
+        self.set_prod_rules(P)
 
 
     def add_terminal_symbols(self, *tsymb):
@@ -65,8 +78,23 @@ class Grammar:
         return True
 
 
-    def set_ProdRules(self, prrules):
+    def set_prod_rules(self, prrules):
         self.P = prrules
+
+        for nt in self.P:
+            self.D.add(nt)
+
+        if len(self.X) == 0:
+            for nt in self.P:
+                if type(self.P[nt]) == list:
+                    for i in self.P[nt]:
+                        for term in i:
+                            if term not in self.D:
+                                self.X.add(term)
+                else:
+                    for term in self.P[nt]:
+                        if term not in self.D:
+                            self.X.add(term)
 
     def check_prod_rule(self, rule):
         ruled = self.P.get(rule[0])
@@ -87,6 +115,19 @@ class Grammar:
             else:
                 p.append((d, i))
         return p
+
+    def get_nonterm_prod_rules(self):
+        l = self.prod_rules_to_list()
+        nonterm_rules = Set()
+        for rule in l:
+            if type(rule[1]) == list:
+                for sub_right in rule[1]:
+                    if type(sub_right) == tuple:
+                        nonterm_rules.add((rule[0], sub_right))
+            else:
+                if type(rule[1]) == tuple:
+                    nonterm_rules.add((rule[0], rule[1]))
+        return nonterm_rules
 
 
     def CYK(self, w):
@@ -115,7 +156,7 @@ class Grammar:
             return 'this word is not produced by this grammar'
 
 
-    def CYKY(self, w):
+    def CYK_recognizer(self, w):
         "Yakovliev Cock"
         N = len(self.D)
         n = len(w)
@@ -125,77 +166,103 @@ class Grammar:
             for i in range(n):
                 Q[d, i, i] = 1 if self.check_prod_rule((self.D[d], w[i])) else 0
 
-        # print(f"0 - { n = }")
-        # for m in range(1, n):
-        #     print(f"1 - { m = }")
-        #     for i in range(n-m+1):
-        #         j = i + m - 1
-        #         print(f"2 - { i = }, { j =}")
-        #
-        #         for d in range(N):
-        #
-        #             derived = False
-        #             for d_der in self.P.get(self.D[d]):
-        #                 # print(f"4 - { d_der = }, { derived = }")
-        #                 for k in range(i, j):
-        #                     print(f"5 - { k = }")
-        #                     print(d_der)
-        #             # Q[d, i, j] =
-
-
         for m in range(2, n+1):
-
             for i in range(1, n-m+2):
                 j = i + m - 1
-                nonterm_prod_rules = list(filter(
-                    lambda x: type(x[1]) == tuple,
-                    self.prod_rules_to_list()))
-                for d in nonterm_prod_rules:
-                    di = self.D._nodes.index(d[0])
-                    d1 = self.D._nodes.index(d[1][0])
-                    d2 = self.D._nodes.index(d[1][1])
-                    # print(di, d1, d2)
-                    for k in range(i, j):
-                        # Q[d, i-1, j-1] = Q[d1, i-1, k-1] and Q[d2, k, j-1]
-                        print(f"{di=}")
-                        print(f"{d1=}, {d2=}, {i=}, {j=}, {k=}")
-                        print(f"{Q[d1, i-1, k-1]=}, {Q[d2, k-1, j-1]=}, {Q[d1, i-1, k-1] and Q[d2, k-1, j-1] = }")
-                        print()
-                        # Q[d, i, j] = Q[d1, i, k] and Q[d2, k, j]
+                for d in self.P:
+                    produced = False
+                    if type(self.P[d]) == list:
+                        for ds in self.P[d]:
+                            if type(ds) == tuple:
+                                di = self.D.index(d)
+                                d1 = self.D.index(ds[0])
+                                d2 = self.D.index(ds[1])
+                                for k in range(i, j):
+                                    produced = produced or (Q[d1, i-1, k-1] and Q[d2, k, j-1])
+                    elif type(self.P[d]) == tuple:
+                        di = self.D.index(d)
+                        d1 = self.D.index(self.P[d][0])
+                        d2 = self.D.index(self.P[d][1])
+                        for k in range(i, j):
+                            produced = produced or (Q[d1, i-1, k-1] and Q[d2, k, j-1])
+                    Q[self.D._nodes.index(d), i-1, j-1] = produced
+        self.Q = Q
+        return Q[0, 0, n-1]
+
+    def CYK_parser(self, w):
+        n = len(w)
+        C = np.empty((n, n), dtype=Set)
+        for i in range(n):
+            for j in range(n):
+                C[i, j] = Set()
+
+        for d in self.P:
+            for i in range(n):
+                if self.check_prod_rule((d, w[i])):
+                    C[i, 0].add((d, w[i]))
+
+        # print(C)
+        for l in range(1, n+1):
+            for i in range(1, n+1):
+                for d in self.get_nonterm_prod_rules():
+                    print(d, l)
+                    for l1 in range(1, l-1):
+                        print(f"{l1=}")
+                        # [0] in C_i,l1 && [1] in C_i+l1,l-l1
+                        b = d[1][0]
+                        c = d[1][1]
+
+                        # print(d)
+                        print(f"{b = }, {c = }")
+
+                        f = False
+                        # print(type(i), type(l1))
+                        # print(C[0, 0])
+                        for rule in C[i-1, l1-1]:
+                            if b == rule[0]:
+                                f = True
+                        s = False
+                        for rule in C[i+l1-1, l-l1-1]:
+                            if c == rule[0]:
+                                s = True
+                        if f and s:
+                            C[i-1, l-1].add(d)
+
+                print()
+        print(C)
+        # nonterm_rules = self.get_nonterm_prod_rules()
+        # for i in range(n):
+        #     for j in range(n):
+        #         for k in range(n):
+        #
+        #             for t1 in C[i, j]
+        #             # for d in self.get_nonterm_prod_rules():
 
 
-                # for d in range(N):
-                #     derived = False
-
-                    # right = self.P.get(self.D[d])
-                    # print(right)
-
-
-        print(Q)
+        print(C)
 
 
 
 def main():
-    # s = Set()
-    # s.add(1)
-    # print(1 in s)
-    g = Grammar()
-    g.add_terminal_symbols('(', ')')
-    g.add_nonterminal_symbols('d0', 'd1', 'd2', 'd3', 'd4')
-    g.set_acsiom('d0')
-    g.set_ProdRules({
-        # d0 -> d1 d1 | d2 d3
-        'd0': [('d1', 'd1'), ('d2', 'd3')],
-        #d1 -> d1 d1 | d2 d2
-        'd1': [('d1', 'd1'), ('d2', 'd3')],
-        'd2': '(',
-        'd3': [('d1' , 'd4'), ')'],
-        'd4': ')'
-    })
+    g = Grammar(
+        P={
+            'd0': [('d1', 'd1'), ('d2', 'd3')],
+            'd1': [('d1', 'd1'), ('d2', 'd3')],
+            'd2': '(',
+            'd3': [('d1', 'd4'), ')'],
+            'd4': ')',
+        }
+    )
 
-    # print( g.check_prod_rule( ('d0', ('d2', 'd1')) ) )
+    print(f"{g.CYK_recognizer('()()')=}")
+    # print(f"{g.CYKY(')()()()()')=}")
 
-    print(g.CYK('(()((())))'))
+    # print(g.Q)
+    print(g.CYK_parser('()'))
+    # print(g.get_nonterm_prod_rules())
+
+
+
 
 
 if __name__ == '__main__':
