@@ -5,15 +5,11 @@ from utils import Set
 
 
 class Grammar:
-    X = Set()       # set of terminal symbols
-    D = Set()       # set of non-terminal symbols
-    acsiom = None   # acsiom
-    P = {}          # set of production rules
-
-
     def __init__(self, X=Set(), D=Set(), acsiom=None, P={}):
-        self.add_terminal_symbols(X)
-        self.add_nonterminal_symbols(D)
+        self.X = X
+        self.D = D
+        # self.add_terminal_symbols(X)
+        # self.add_nonterminal_symbols(D)
         self.set_acsiom(acsiom)
         self.set_prod_rules(P)
 
@@ -151,6 +147,10 @@ class Grammar:
                         if lrule in C[i-1, k-1] and rrule in C[k, j-1]:
                             C[i-1, j-1].add(rule[0])
         return C
+
+    
+    # def CYK_recognizer_modified(self, w):
+
 
 
 def turn_to_HomskyForm(gramm):
@@ -297,26 +297,35 @@ def turn_to_HomskyForm(gramm):
     # return new_grammar
 
 def main():
-    g = Grammar(
-        P={
-            'd0': [('d1', 'd1'), ('d2', 'd3')],
-            'd1': [('d1', 'd1'), ('d2', 'd3')],
-            'd2': [('(')],
-            'd3': [('d1', 'd4'), ')'],
-            'd4': [(')')],
-        }
-    )
+    # g = Grammar(
+    #     P={
+    #         'd0': [('d1', 'd1'), ('d2', 'd3')],
+    #         'd1': [('d1', 'd1'), ('d2', 'd3')],
+    #         'd2': [('(')],
+    #         'd3': [('d1', 'd4'), ')'],
+    #         'd4': [(')')],
+    #     }
+    # )
 
     # print(f"{g.CYK_recognizer('()(()())()')=}")
     # print(f"{g.CYK_recognizer('()')=}")
     # print(f"{g.CYKY(')()()()()')=}")
 
     # print(g.Q)
-    print(g.CYK_parser('(()()())'))
+    # print(g.CYK_parser('(()()())'))
     # print(g.get_nonterm_prod_rules())
     # print(g.prod_rules_to_list())
     # print(g.get_nonterm_prod_rules())
 
+    arithm = Grammar(P={
+        'digit': [(0), (1), (2), (3), (4), (5), (6), (7), (8), (9), ('digit', 'digit')],
+        'oper': [('+'), ('-'), ('*'), ('/')],
+        'formula': [('digit', 'f1')],
+        'f1': [('oper', 'digit')],
+    })
+    print(arithm.D)
+    print(arithm.X)
+    print(arithm.CYK_recognizer('8+9'))
 
 
 
