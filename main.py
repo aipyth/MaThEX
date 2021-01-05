@@ -5,21 +5,21 @@ from utils import Set
 
 
 class Grammar:
-    def __init__(self, X=Set(), D=Set(), acsiom=None, P={}):
-        self.X = X
-        self.D = D
-        # self.add_terminal_symbols(X)
-        # self.add_nonterminal_symbols(D)
+    def __init__(self, X={}, D={}, acsiom=None, P={}):
+        self.X = Set()
+        self.D = Set()
+        self.add_terminal_symbols(X)
+        self.add_nonterminal_symbols(D)
         self.set_acsiom(acsiom)
         self.set_prod_rules(P)
 
 
-    def add_terminal_symbols(self, tsymb):
+    def add_terminal_symbols(self, tsymb: set):
         for i in tsymb:
             self.X.add(i)
 
 
-    def add_nonterminal_symbols(self, ntsymb):
+    def add_nonterminal_symbols(self, ntsymb: set):
         for i in ntsymb:
             self.D.add(i)
 
@@ -311,16 +311,16 @@ def main():
     #         'd4': [(')')],
     #     }
     # )
-    g = Grammar(
+    # g = Grammar(
 
-        X = {'(', ')'},
-        D = {'d0'},
-        acsiom = 'd0',
-        P = {
-            'd0': [('(', 'd0', ')'), ('d0', 'd0'), 'eps'],
+    #     X = {'(', ')'},
+    #     D = {'d0'},
+    #     acsiom = 'd0',
+    #     P = {
+    #         'd0': [('(', 'd0', ')'), ('d0', 'd0'), 'eps'],
 
-        }
-    )
+    #     }
+    # )
 
     # print(f"{g.CYK_recognizer('()(()())()')=}")
     # print(f"{g.CYK_recognizer('()')=}")
@@ -331,7 +331,7 @@ def main():
     # print(g.get_nonterm_prod_rules())
     # print(g.prod_rules_to_list())
     # print(g.get_nonterm_prod_rules())
-    print(turn_to_HomskyForm(g).P)
+    # print(turn_to_HomskyForm(g).P)
 
     arithm = Grammar(P={
         'digit': [(0), (1), (2), (3), (4), (5), (6), (7), (8), (9), ('digit', 'digit')],
@@ -343,8 +343,8 @@ def main():
     print(arithm.X)
     print(arithm.CYK_recognizer('8+9'))
 
-    G = turn_to_HomskyForm(g)
-    G.CYK_recognizer('()()')
+    # G = turn_to_HomskyForm(g)
+    # G.CYK_recognizer('()()')
 
 
 
