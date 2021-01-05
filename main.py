@@ -285,7 +285,7 @@ def turn_to_HomskyForm(gramm):
         if element not in found_elements:
             del new_grammar.P[element]
 
-    # # #last shtrikh:
+    # #last shtrikh:
     for item in new_grammar.X:
         S1 = 'Z' + str(new_grammar.X.index(item))
         for element in new_grammar.P.copy():
@@ -295,21 +295,29 @@ def turn_to_HomskyForm(gramm):
                     for i in range(2):
                         if rule[i] == item:
                             new_list[i] = S1
+                            new_grammar.D.add(S1)
                     new_grammar.P[element][new_grammar.P[element].index(rule)] = tuple(new_list)
 
         new_grammar.P[S1] = [(item)]
-
+    for element in new_grammar.P.copy():
+        lst = []
+        lst.append(element)
+        if tuple(lst) in new_grammar.P[element]:
+            new_grammar.P[element].remove(tuple(lst))
     return new_grammar
 
 def main():
     g = Grammar(
 
         X = {'(', ')'},
-        D = {'d0'},
+        D = {'d0', 'd1', 'd2', 'd3', 'd4'},
         acsiom = 'd0',
         P = {
-            'd0': [('(', 'd0', ')'), ('d0', 'd0'), 'eps'],
-
+            'd0': [('d1', 'd1'), ('d2', 'd3')],
+            'd1': [('d1', 'd1'), ('d2', 'd3')],
+            'd2': [('(')],
+            'd3': [('d1', 'd4'), ')'],
+            'd4': [(')')]
         }
     )
 
@@ -322,10 +330,8 @@ def main():
     # print(g.get_nonterm_prod_rules())
     # print(g.prod_rules_to_list())
     # print(g.get_nonterm_prod_rules())
-    print(turn_to_HomskyForm(g).P)
 
-    G = turn_to_HomskyForm(g)
-    G.CYK_recognizer('()()')
+    print(g.CYK_recognizer('()()'))
 
 
 
