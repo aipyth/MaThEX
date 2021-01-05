@@ -62,7 +62,7 @@ class Grammar:
         self.add_nonterminal_symbols(D)
         self.set_acsiom(acsiom)
 
-    def add_terminal_symbols(self, *tsymb):
+    def add_terminal_symbols(self, tsymb):
         for i in tsymb:
             self.X.add(i)
 
@@ -83,20 +83,20 @@ class Grammar:
     def set_prod_rules(self, prrules):
         self.P = prrules
 
-        for nt in self.P:
-            self.D.add(nt)
-
-        if len(self.X) == 0:
-            for nt in self.P:
-                if type(self.P[nt]) == list:
-                    for i in self.P[nt]:
-                        for term in i:
-                            if term not in self.D:
-                                self.X.add(term)
-                else:
-                    for term in self.P[nt]:
-                        if term not in self.D:
-                            self.X.add(term)
+        # for nt in self.P:
+        #     self.D.add(nt)
+        #
+        # if len(self.X) == 0:
+        #     for nt in self.P:
+        #         if type(self.P[nt]) == list:
+        #             for i in self.P[nt]:
+        #                 for term in i:
+        #                     if term not in self.D:
+        #                         self.X.add(term)
+        #         else:
+        #             for term in self.P[nt]:
+        #                 if term not in self.D:
+        #                     self.X.add(term)
 
     def check_prod_rule(self, rule):
         ruled = self.P.get(rule[0])
@@ -248,157 +248,162 @@ class Grammar:
 def turn_to_HomskyForm(gramm):
     # creating new grammar as copy of argument in Homsky form:
     new_grammar = gramm
-    # 1) delete long rules:
-    # for j in range(len(new_grammar.P)):
-    #     keys_list = list(new_grammar.P)
-    #     rules = new_grammar.P[keys_list[j]]
-    #     for rule in rules:
-    #         if len(rule) > 2:
-    #             k = len(rule)
-    #             for i in range(1, k-2):
-    #                 newNonTerminal = chr(64+j) + str(i)
-    #                 new_grammar.D.add(newNonTerminal)
-    #                 new_grammar.P[newNonTerminal] = [(rule[i], chr(64+j) + str(i+1))]
-    #             newlastNonTerminal = chr(64+j) + str(k-2)
-    #             new_grammar.P[newlastNonTerminal] = [(rule[k-2]), (rule[k-1])]
-    #             rules.append((rule[0], chr(64+j) + str(1)))
-    #             rules.remove(rule)
-    #
-    # # 2) delete epsilon-rules:
-    # # to find rules A => eps:
-    # S = Set() #set of espilon non-Terms
-    # for element in new_grammar.P.copy():
-    #     for rule in new_grammar.P[element]:
-    #         if rule == 'eps':
-    #             S.add(element)
-    # s = S
-    # while True:
-    #     S = s
-    #     for element in new_grammar.P.copy():
-    #         for rule in new_grammar.P[element]:
-    #             if len(rule) > 1:
-    #                 if rule[0] in S and rule[1] in S:
-    #                     s.add(element)
-    #             elif len(rule) <= 1:
-    #                 if rule[0] in S:
-    #                     s.add(element)
-    #     if s == S:
-    #         break
-    #
-    # #now Eliminate them!
-    # new_P = new_grammar.P
-    # for element in new_P.copy():
-    #     rules = new_P[element]
-    #     for rule in rules:
-    #         for symbol in rule:
-    #             if symbol in S and len(rule) > 1:
-    #                 temp = list(rule)
-    #                 temp.remove(symbol)
-    #                 new_rule = tuple(temp)
-    #                 rules.append(new_rule)
-    #
-    #     delete_reps = set(rules)
-    #     new_P[element] = list(delete_reps)
-    # for element in new_P.copy():
-    #     if 'eps' in new_P[element]:
-    #         new_P[element].remove('eps')
-    #     if new_P[element] == []:
-    #         del new_P[element]
-    # new_grammar.P = new_P
-    #
-    # # 3) delete the chain prod rules:
-    # # to find unit pairs:
-    # def unit_pairs_set(D, P):
-    #     the_set = list((i, i) for i in D)
-    #     for element in P:
-    #         for rule in P[element]:
-    #             if len(rule) == 1 and rule[0] in D:
-    #                 for item in the_set:
-    #                     if item[1] == element:
-    #                         the_set.append((item[0], rule[0]))
-    #     return the_set
-    # pairs_set = unit_pairs_set(new_grammar.D, new_grammar.P)
-    # for pair in pairs_set:
-    #     if pair[0] != pair[1]:
-    #         new_grammar.P[pair[0]].remove((pair[1]))
-    #         new_grammar.P[pair[0]] = new_grammar.P[pair[0]] + new_grammar.P[pair[1]]
-    #         new_grammar.P[pair[0]] = list(set(new_grammar.P[pair[0]]))
+    #1) delete long rules:
+    for j in range(len(new_grammar.P)):
+        keys_list = list(new_grammar.P)
+        rules = new_grammar.P[keys_list[j]]
+        for rule in rules:
+            if len(rule) > 2 and rule != 'eps':
+                k = len(rule)
+                for i in range(1, k-2):
+                    newNonTerminal = chr(65+j) + str(i)
+                    new_grammar.D.add(newNonTerminal)
+                    new_grammar.P[newNonTerminal] = [(rule[i], chr(64+j) + str(i+1))]
+                newlastNonTerminal = chr(65+j) + str(k-2)
+                new_grammar.P[newlastNonTerminal] = [((rule[k-2]), (rule[k-1]))]
+                rules.append((rule[0], chr(65+j) + str(1)))
+                rules.remove(rule)
+
+    2) delete epsilon-rules:
+    to find rules A => eps:
+    S = Set() #set of espilon non-Terms
+    for element in new_grammar.P.copy():
+        for rule in new_grammar.P[element]:
+            if rule == 'eps':
+                S.add(element)
+    s = S
+    while True:
+        S = s
+        for element in new_grammar.P.copy():
+            for rule in new_grammar.P[element]:
+                if len(rule) == 2:
+                    if rule[0] in S and rule[1] in S:
+                        s.add(element)
+                if len(rule) == 1:
+                    print(element, rule)
+                    if rule[0] in S:
+                        s.add(element)
+        if s == S:
+            break
+    print('set of eps nonterms is', S)
+    #now Eliminate them!
+    new_P = new_grammar.P
+    for element in new_P.copy():
+        rules = new_P[element]
+        for rule in rules:
+            for symbol in rule:
+                if symbol in S and len(rule) > 1:
+                    temp = list(rule)
+                    temp.remove(symbol)
+                    new_rule = tuple(temp)
+                    rules.append(new_rule)
+
+        delete_reps = set(rules)
+        new_P[element] = list(delete_reps)
+    for element in new_P.copy():
+        if 'eps' in new_P[element]:
+            new_P[element].remove('eps')
+        if new_P[element] == []:
+            del new_P[element]
+    new_grammar.P = new_P
+
+    # 3) delete the chain prod rules:
+    # to find unit pairs:
+    def unit_pairs_set(D, P):
+        the_set = list((i, i) for i in D)
+        for element in P:
+            for rule in P[element]:
+                if len(rule) == 1 and rule[0] in D:
+                    for item in the_set:
+                        if item[1] == element:
+                            the_set.append((item[0], rule[0]))
+        return the_set
+    pairs_set = unit_pairs_set(new_grammar.D, new_grammar.P)
+    for pair in pairs_set:
+        if pair[0] != pair[1]:
+            new_grammar.P[pair[0]].remove((pair[1]))
+            new_grammar.P[pair[0]] = new_grammar.P[pair[0]] + new_grammar.P[pair[1]]
+            new_grammar.P[pair[0]] = list(set(new_grammar.P[pair[0]]))
 
     #4) delete useless elems:
 
-    #delete non-generating non-terms
-    # set_of_generatings = set()
-    # for element in new_grammar.P:
-    #     for rule in new_grammar.P[element]:
-    #         if len(rule) > 1:
-    #             if rule[0] not in new_grammar.D and rule[1] not in new_grammar.D:
-    #                     set_of_generatings.add(element)
-    #         if len(rule) == 1:
-    #             if rule[0] not in new_grammar.D:
-    #                     set_of_generatings.add(element)
-    # while True:
-    #     s = set_of_generatings
-    #     for element in new_grammar.P:
-    #         for rule in new_grammar.P[element]:
-    #             if rule[0] in set_of_generatings and rule[1] in set_of_generatings:
-    #                     s.add(element)
-    #     if s == set_of_generatings:
-    #         break
-    # #delete ureachable non-Terms
-    # #algorithm of search
-    # found_elements = Set()
-    # found_elements.add(new_grammar.acsiom)
-    # print(new_grammar.D)
-    # for item in found_elements:
-    #     if item in new_grammar.P:
-    #         for rule in new_grammar.P[item]:
-    #             for term in rule:
-    #                 if term in new_grammar.D:
-    #                     found_elements.add(term)
-    #
-    # #delete them all!
-    # print(set_of_generatings)
-    # print(new_grammar.D)
-    # for element in new_grammar.P:
-    #     for rule in new_grammar.P[element]:
-    #         for term in rule:
-    #             if term not in set_of_generatings and term in new_grammar.D:
-    #                 new_list = list(rule)
-    #                 new_list.remove(term)
-    #                 new_grammar.P[element].remove(rule)
-    #                 print(new_list)
-    #                 if not(len(new_list) == 1 and new_list[0] == element):
-    #                     new_grammar.P[element].append(tuple(new_list))
-    # for element in new_grammar.P.copy():
-    #     if element not in found_elements:
-    #         del new_grammar.P[element]
+    # delete non-generating non-terms
+    set_of_generatings = set()
+    for element in new_grammar.P:
+        for rule in new_grammar.P[element]:
+            if len(rule) > 1:
+                if rule[0] not in new_grammar.D and rule[1] not in new_grammar.D:
+                        set_of_generatings.add(element)
+            if len(rule) == 1:
+                if rule[0] not in new_grammar.D:
+                        set_of_generatings.add(element)
+    while True:
+        s = set_of_generatings
+        for element in new_grammar.P:
+            for rule in new_grammar.P[element]:
+                if len(rule) > 1:
+                    if rule[0] in set_of_generatings and rule[1] in set_of_generatings:
+                        s.add(element)
+                else:
+                    if rule[0] in set_of_generatings:
+                        s.add(element)
+        if s == set_of_generatings:
+            break
+    #delete ureachable non-Terms
+    #algorithm of search
+    found_elements = Set()
+    found_elements.add(new_grammar.acsiom)
+    print(new_grammar.D)
+    for item in found_elements:
+        if item in new_grammar.P:
+            for rule in new_grammar.P[item]:
+                for term in rule:
+                    if term in new_grammar.D:
+                        found_elements.add(term)
+
+    #delete them all!
+    print(set_of_generatings)
+    print(new_grammar.D)
+    for element in new_grammar.P:
+        for rule in new_grammar.P[element]:
+            for term in rule:
+                if term not in set_of_generatings and term in new_grammar.D:
+                    new_list = list(rule)
+                    new_list.remove(term)
+                    new_grammar.P[element].remove(rule)
+                    print(new_list)
+                    if not(len(new_list) == 1 and new_list[0] == element):
+                        new_grammar.P[element].append(tuple(new_list))
+    for element in new_grammar.P.copy():
+        if element not in found_elements:
+            del new_grammar.P[element]
 
     #last shtrikh:
-    print(new_grammar.X)
     for item in new_grammar.X:
-        Neterminal = 'NonTerm_' + item
-        for element in new_grammar.P:
+        S1 = 'Z' + str(new_grammar.X.index(item))
+        for element in new_grammar.P.copy():
             for rule in new_grammar.P[element]:
                 if len(rule) == 2 and item in rule:
                     new_list = list(rule)
-                    new_list.remove(item)
-                    new_list.append(Neterminal)
-                    new_grammar.P[element].remove(rule)
-                    new_grammar.P[element].append(tuple(new_list))
-        new_grammar.P[Neterminal] = [(item)]
+                    for i in range(2):
+                        if rule[i] == item:
+                            new_list[i] = S1
+                    new_grammar.P[element][new_grammar.P[element].index(rule)] = tuple(new_list)
+
+        new_grammar.P[S1] = [(item)]
     return new_grammar
 
 def main():
     g = Grammar(
 
-        X = {'a', 's', 'f'},
-        D = {'S', 'A', 'E', 'F', 'B'},
+        X = {'a', 'b', 'y', 'c'},
+        D = {'S', 'X', 'Y', 'Z'},
         acsiom = 'S',
         P = {
-            'S': [('a', 'S1')],
-            'E': [('E', 'F'), ('F', 'F')],
-            'A': [('a')],
-            'F': [('f')]
+            'S': [('a', 'X', 'b', 'X'), ('a', 'Z')],
+            'X': [('a', 'Y'), ('b', 'Y'), 'eps'],
+            'Y': [('X'), ('c', 'c')],
+            'Z': [('Z', 'X')]
         }
     )
 
