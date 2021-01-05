@@ -14,7 +14,7 @@ class Grammar:
         self.set_prod_rules(P)
 
 
-    def add_terminal_symbols(self, *tsymb):
+    def add_terminal_symbols(self, tsymb):
         for i in tsymb:
             self.X.add(i)
 
@@ -156,145 +156,150 @@ class Grammar:
 def turn_to_HomskyForm(gramm):
     # creating new grammar as copy of argument in Homsky form:
     new_grammar = gramm
-    # 1) delete long rules:
-    # for j in range(len(new_grammar.P)):
-    #     keys_list = list(new_grammar.P)
-    #     rules = new_grammar.P[keys_list[j]]
-    #     for rule in rules:
-    #         if len(rule) > 2:
-    #             k = len(rule)
-    #             for i in range(1, k-2):
-    #                 newNonTerminal = chr(64+j) + str(i)
-    #                 new_grammar.D.add(newNonTerminal)
-    #                 new_grammar.P[newNonTerminal] = [(rule[i], chr(64+j) + str(i+1))]
-    #             newlastNonTerminal = chr(64+j) + str(k-2)
-    #             new_grammar.P[newlastNonTerminal] = [(rule[k-2]), (rule[k-1])]
-    #             rules.append((rule[0], chr(64+j) + str(1)))
-    #             rules.remove(rule)
-    #
-    # # 2) delete epsilon-rules:
-    # # to find rules A => eps:
-    # S = Set() #set of espilon non-Terms
-    # for element in new_grammar.P.copy():
-    #     for rule in new_grammar.P[element]:
-    #         if rule == 'eps':
-    #             S.add(element)
-    # s = S
-    # while True:
-    #     S = s
-    #     for element in new_grammar.P.copy():
-    #         for rule in new_grammar.P[element]:
-    #             if len(rule) > 1:
-    #                 if rule[0] in S and rule[1] in S:
-    #                     s.add(element)
-    #             elif len(rule) <= 1:
-    #                 if rule[0] in S:
-    #                     s.add(element)
-    #     if s == S:
-    #         break
-    #
-    # #now Eliminate them!
-    # new_P = new_grammar.P
-    # for element in new_P.copy():
-    #     rules = new_P[element]
-    #     for rule in rules:
-    #         for symbol in rule:
-    #             if symbol in S and len(rule) > 1:
-    #                 temp = list(rule)
-    #                 temp.remove(symbol)
-    #                 new_rule = tuple(temp)
-    #                 rules.append(new_rule)
-    #
-    #     delete_reps = set(rules)
-    #     new_P[element] = list(delete_reps)
-    # for element in new_P.copy():
-    #     if 'eps' in new_P[element]:
-    #         new_P[element].remove('eps')
-    #     if new_P[element] == []:
-    #         del new_P[element]
-    # new_grammar.P = new_P
+    #1) delete long rules:
+    for j in range(len(new_grammar.P)):
+        keys_list = list(new_grammar.P)
+        rules = new_grammar.P[keys_list[j]]
+        for rule in rules:
+            if len(rule) > 2 and rule != 'eps':
+                k = len(rule)
+                for i in range(1, k-2):
+                    newNonTerminal = chr(65+j) + str(i)
+                    new_grammar.D.add(newNonTerminal)
+                    new_grammar.P[newNonTerminal] = [(rule[i], chr(65+j) + str(i+1))]
+                newlastNonTerminal = chr(65+j) + str(k-2)
+                new_grammar.P[newlastNonTerminal] = [((rule[k-2]), (rule[k-1]))]
+                new_grammar.D.add(newlastNonTerminal)
+                rules.append((rule[0], chr(65+j) + str(1)))
+                rules.remove(rule)
+
+    # 2) delete epsilon-rules:
+    # to find rules A => eps:
+    S = Set() #set of espilon non-Terms
+    for element in new_grammar.P.copy():
+        for rule in new_grammar.P[element]:
+            if rule == 'eps':
+                S.add(element)
+    s = S
+    while True:
+        S = s
+        for element in new_grammar.P.copy():
+            for rule in new_grammar.P[element]:
+                if len(rule) == 2:
+                    if rule[0] in S and rule[1] in S:
+                        s.add(element)
+                if len(rule) == 1:
+                    if rule[0] in S:
+                        s.add(element)
+        if s == S:
+            break
+    #now Eliminate them!
+    new_P = new_grammar.P
+    for element in new_P.copy():
+        rules = new_P[element]
+        for rule in rules:
+            for symbol in rule:
+                if symbol in S and len(rule) > 1:
+                    temp = list(rule)
+                    temp.remove(symbol)
+                    new_rule = tuple(temp)
+                    rules.append(new_rule)
+
+        delete_reps = set(rules)
+        new_P[element] = list(delete_reps)
+    for element in new_P.copy():
+        if 'eps' in new_P[element]:
+            new_P[element].remove('eps')
+        if new_P[element] == []:
+            del new_P[element]
+    new_grammar.P = new_P
     #
     # # 3) delete the chain prod rules:
     # # to find unit pairs:
-    # def unit_pairs_set(D, P):
-    #     the_set = list((i, i) for i in D)
-    #     for element in P:
-    #         for rule in P[element]:
-    #             if len(rule) == 1 and rule[0] in D:
-    #                 for item in the_set:
-    #                     if item[1] == element:
-    #                         the_set.append((item[0], rule[0]))
-    #     return the_set
-    # pairs_set = unit_pairs_set(new_grammar.D, new_grammar.P)
-    # for pair in pairs_set:
-    #     if pair[0] != pair[1]:
-    #         new_grammar.P[pair[0]].remove((pair[1]))
-    #         new_grammar.P[pair[0]] = new_grammar.P[pair[0]] + new_grammar.P[pair[1]]
-    #         new_grammar.P[pair[0]] = list(set(new_grammar.P[pair[0]]))
+    def unit_pairs_set(D, P):
+        the_set = list((i, i) for i in D)
+        for element in P:
+            for rule in P[element]:
+                if len(rule) == 1 and rule[0] in D:
+                    for item in the_set:
+                        if item[1] == element and (item[0], rule[0]) not in the_set:
+                            the_set.append((item[0], rule[0]))
+        return the_set
+    pairs_set = unit_pairs_set(new_grammar.D, new_grammar.P)
+    for pair in pairs_set:
+        if pair[0] != pair[1]:
+            tupl = list()
+            tupl.append(pair[1])
+            tupl = tuple(tupl)
+            new_grammar.P[pair[0]].remove(tupl)
+            new_grammar.P[pair[0]] = new_grammar.P[pair[0]] + new_grammar.P[pair[1]]
+            new_grammar.P[pair[0]] = list(set(new_grammar.P[pair[0]]))
 
-    #4) delete useless elems:
-
-    #delete non-generating non-terms
-    # set_of_generatings = set()
-    # for element in new_grammar.P:
-    #     for rule in new_grammar.P[element]:
-    #         if len(rule) > 1:
-    #             if rule[0] not in new_grammar.D and rule[1] not in new_grammar.D:
-    #                     set_of_generatings.add(element)
-    #         if len(rule) == 1:
-    #             if rule[0] not in new_grammar.D:
-    #                     set_of_generatings.add(element)
-    # while True:
-    #     s = set_of_generatings
-    #     for element in new_grammar.P:
-    #         for rule in new_grammar.P[element]:
-    #             if rule[0] in set_of_generatings and rule[1] in set_of_generatings:
-    #                     s.add(element)
-    #     if s == set_of_generatings:
-    #         break
-    # #delete ureachable non-Terms
-    # #algorithm of search
-    # found_elements = Set()
-    # found_elements.add(new_grammar.acsiom)
-    # print(new_grammar.D)
-    # for item in found_elements:
-    #     if item in new_grammar.P:
-    #         for rule in new_grammar.P[item]:
-    #             for term in rule:
-    #                 if term in new_grammar.D:
-    #                     found_elements.add(term)
+    # #4) delete useless elems:
     #
-    # #delete them all!
-    # print(set_of_generatings)
-    # print(new_grammar.D)
-    # for element in new_grammar.P:
-    #     for rule in new_grammar.P[element]:
-    #         for term in rule:
-    #             if term not in set_of_generatings and term in new_grammar.D:
-    #                 new_list = list(rule)
-    #                 new_list.remove(term)
-    #                 new_grammar.P[element].remove(rule)
-    #                 print(new_list)
-    #                 if not(len(new_list) == 1 and new_list[0] == element):
-    #                     new_grammar.P[element].append(tuple(new_list))
-    # for element in new_grammar.P.copy():
-    #     if element not in found_elements:
-    #         del new_grammar.P[element]
+    # # delete non-generating non-terms
+    set_of_generatings = set()
+    set_of_generatings.add(new_grammar.acsiom)
+    for element in new_grammar.P:
+        for rule in new_grammar.P[element]:
+            if len(rule) > 1:
+                if rule[0] not in new_grammar.D and rule[1] not in new_grammar.D:
+                        set_of_generatings.add(element)
+            if len(rule) == 1:
+                if rule[0] not in new_grammar.D:
+                        set_of_generatings.add(element)
+    while True:
+        s = set_of_generatings
+        for element in new_grammar.P:
+            for rule in new_grammar.P[element]:
+                if len(rule) > 1:
+                    if rule[0] in set_of_generatings and rule[1] in set_of_generatings:
+                        s.add(element)
+                else:
+                    if rule[0] in set_of_generatings:
+                        s.add(element)
+        if s == set_of_generatings:
+            break
+    #delete ureachable non-Terms
+    #algorithm of search
+    found_elements = Set()
+    found_elements.add(new_grammar.acsiom)
+    for item in found_elements:
+        if item in new_grammar.P:
+            for rule in new_grammar.P[item]:
+                for term in rule:
+                    if term in new_grammar.D:
+                        found_elements.add(term)
 
-    #last shtrikh:
-    # print(new_grammar.X)
-    # for item in new_grammar.X:
-    #     Neterminal = 'NonTerm_' + item
-    #     for element in new_grammar.P:
-    #         for rule in new_grammar.P[element]:
-    #             if len(rule) == 2 and item in rule:
-    #                 new_list = list(rule)
-    #                 new_list.remove(item)
-    #                 new_list.append(Neterminal)
-    #                 new_grammar.P[element].remove(rule)
-    #                 new_grammar.P[element].append(tuple(new_list))
-    #     new_grammar.P[Neterminal] = [(item)]
-    # return new_grammar
+    #delete them all!
+    for element in new_grammar.P:
+        for rule in new_grammar.P[element]:
+            for term in rule:
+                if term not in set_of_generatings and term in new_grammar.D:
+                    new_list = list(rule)
+                    new_list.remove(term)
+                    new_grammar.P[element].remove(rule)
+                    if not(len(new_list) == 1 and new_list[0] == element):
+                        new_grammar.P[element].append(tuple(new_list))
+    for element in new_grammar.P.copy():
+        if element not in found_elements:
+            del new_grammar.P[element]
+
+    # # #last shtrikh:
+    for item in new_grammar.X:
+        S1 = 'Z' + str(new_grammar.X.index(item))
+        for element in new_grammar.P.copy():
+            for rule in new_grammar.P[element]:
+                if len(rule) == 2 and item in rule:
+                    new_list = list(rule)
+                    for i in range(2):
+                        if rule[i] == item:
+                            new_list[i] = S1
+                    new_grammar.P[element][new_grammar.P[element].index(rule)] = tuple(new_list)
+
+        new_grammar.P[S1] = [(item)]
+
+    return new_grammar
 
 def main():
     # g = Grammar(
@@ -306,6 +311,16 @@ def main():
     #         'd4': [(')')],
     #     }
     # )
+    g = Grammar(
+
+        X = {'(', ')'},
+        D = {'d0'},
+        acsiom = 'd0',
+        P = {
+            'd0': [('(', 'd0', ')'), ('d0', 'd0'), 'eps'],
+
+        }
+    )
 
     # print(f"{g.CYK_recognizer('()(()())()')=}")
     # print(f"{g.CYK_recognizer('()')=}")
@@ -316,6 +331,7 @@ def main():
     # print(g.get_nonterm_prod_rules())
     # print(g.prod_rules_to_list())
     # print(g.get_nonterm_prod_rules())
+    print(turn_to_HomskyForm(g).P)
 
     arithm = Grammar(P={
         'digit': [(0), (1), (2), (3), (4), (5), (6), (7), (8), (9), ('digit', 'digit')],
@@ -327,6 +343,8 @@ def main():
     print(arithm.X)
     print(arithm.CYK_recognizer('8+9'))
 
+    G = turn_to_HomskyForm(g)
+    G.CYK_recognizer('()()')
 
 
 
