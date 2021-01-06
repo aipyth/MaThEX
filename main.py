@@ -341,6 +341,27 @@ def turn_to_HomskyForm(gramm):
                     new_grammar.P[S1] = [item]
     return new_grammar
 
+def compile_rules(s : str):
+    """
+    Compile rules to dictionary of list of rules
+    acsiom -> nt1 nt2 | nt2 nt2
+    nt2 -> ( nt2 ) | eps
+    nt2 -> eps
+    """
+    ss = s.split('\n')
+    rules = {}
+    for srules in ss:
+        arrow_index = srules.find('->')
+        left_nonterm = srules[:arrow_index].strip()
+        right_derivs = list(map(lambda x: x.strip(), srules[arrow_index+2:].strip().split('|')))
+        if left_nonterm != '' and len(right_derivs) != 0 and right_derivs[0] != '':
+            right_derivs = list(map(lambda x: tuple(x.split(' ')), right_derivs))
+            right_derivs = list(map(lambda x: x[0] if len(x) == 1 else x, right_derivs))
+            rules[left_nonterm] = right_derivs
+    return rules
+
+
+
 def main():
     # g = Grammar(
     #     X={"aa", "bb"},
