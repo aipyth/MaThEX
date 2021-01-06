@@ -247,15 +247,19 @@ def turn_to_HomskyForm(gramm):
                 if rule in D:
                     for item in the_set:
                         if item[1] == element and (item[0], rule[0]) not in the_set:
-                            the_set.append((item[0], rule[0]))
+                            if type(rule) == tuple:
+                                the_set.append((item[0], rule[0]))
+                            else:
+                                the_set.append((item[0], rule))
         return the_set
     pairs_set = unit_pairs_set(new_grammar.D, new_grammar.P)
+    print(pairs_set)
     for pair in pairs_set:
         if pair[0] != pair[1]:
             # tupl = list()
             # tupl.append(pair[1])
             # tupl = tuple(tupl)
-            # print(pair[1])
+            print(pair)
             new_grammar.P[pair[0]].remove(pair[1])
             new_grammar.P[pair[0]] = new_grammar.P[pair[0]] + new_grammar.P[pair[1]]
             new_grammar.P[pair[0]] = list(set(new_grammar.P[pair[0]]))
@@ -353,19 +357,19 @@ def main():
     # print(g.CYK_recognizer("aabb"))
     arithm = Grammar(
         X = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/', '=', '(', ')', 'log', 'exp', 'sin', 'cos'},
-        D = { 'D', 'O', 'F', 'G', 'N'},
-        acsiom ='F',
+        D = { 'Dig', 'Opr', 'For', 'Fun', 'Nam'},
+        acsiom ='For',
         P={
-          'D': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ('D', 'D')],
-          'O': ['+', '-', '*', '/', '='],
-          'F': [('F', 'O', 'F'), 'G'],
-          'G': ['D', ('(', 'G', ')'), ('N', 'G'), ('G', 'O', 'G')],
-          'N': ['log', 'exp', 'sin', 'cos']
+          'Dig': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ('Dig', 'Dig')],
+          'Opr': ['+', '-', '*', '/', '='],
+          'For': [('For', 'Opr', 'For'), 'Fun'],
+          'Fun': ['Dig', ('(', 'Fun', ')'), ('Nam', 'Fun'), ('Fun', 'Opr', 'Fun')],
+          'Nam': ['log', 'exp', 'sin', 'cos']
    })
 
     G = turn_to_HomskyForm(arithm)
     # print(G)
-    print(G.CYK_recognizer('cos(123)'))
+    print(G.CYK_recognizer('log(2)+2'))
 
 
 
