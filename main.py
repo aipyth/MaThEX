@@ -131,7 +131,7 @@ class Grammar:
                     produced = False
                     for ds in self.P[d]:
                         # we check if this is nonterm rule
-                        if len(ds) == 2:
+                        if type(ds) == tuple:
                             di = self.D.index(d)
                             d1 = self.D.index(ds[0])
                             d2 = self.D.index(ds[1])
@@ -320,9 +320,9 @@ def main():
         P={
             'd0': [('d1', 'd1'), ('d2', 'd3')],
             'd1': [('d1', 'd1'), ('d2', 'd3')],
-            'd2': [('(')],
+            'd2': ['('],
             'd3': [('d1', 'd4'), ')'],
-            'd4': [(')')],
+            'd4': [')'],
         }
     )
     print(g)
@@ -338,7 +338,7 @@ def main():
     # )
 
     # print(f"{g.CYK_recognizer('()(()())()')=}")
-    # print(f"{g.CYK_recognizer('()()')=}")
+    print(f"{g.CYK_recognizer('()')=}")
     # print(f"{g.CYKY(')()()()()')=}")
 
     # print(g.Q)
