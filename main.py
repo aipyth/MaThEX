@@ -15,13 +15,16 @@ class Grammar:
 
 
     def __repr__(self):
-        pass
-        # rr = []
-        # rules = 
+        rr = []
+        for d in self.P:
+            s = []
+            for ds in self.P[d]:
+                s.append(' '.join(ds))
+            rr.append('\t' + str(d) + ' -> ' + ' | '.join(s))
+        rules = '\n'.join(rr)
 
 
-        # return f"Grammar: {self.__name__}\nTerminal symbols: {self.X}\n/
-        # Nonterminal symbols: {self.D}\nAcsiom: {self.acsiom}\nRules: {rules}"
+        return f"<Grammar>:\nTerminal symbols: {self.X}\nNonterminal symbols: {self.D}\nAcsiom: {self.acsiom}\nRules:\n{rules}"
 
 
 
@@ -159,7 +162,7 @@ class Grammar:
                             C[i-1, j-1].add(rule[0])
         return C
 
-    
+
     # def CYK_recognizer_modified(self, w):
 
 
@@ -322,6 +325,7 @@ def main():
             'd4': [(')')],
         }
     )
+    print(g)
     # g = Grammar(
 
     #     X = {'(', ')'},
@@ -334,7 +338,7 @@ def main():
     # )
 
     # print(f"{g.CYK_recognizer('()(()())()')=}")
-    print(f"{g.CYK_recognizer('()()')=}")
+    # print(f"{g.CYK_recognizer('()()')=}")
     # print(f"{g.CYKY(')()()()()')=}")
 
     # print(g.Q)
