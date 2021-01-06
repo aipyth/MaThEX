@@ -20,9 +20,9 @@ class Grammar:
             s = []
             for ds in self.P[d]:
                 if type(ds) == tuple:
-                    s.append(' '.join(ds))
+                    s.append(' '.join(tuple(map(str, ds))))
                 else:
-                    s.append(ds)
+                    s.append(str(ds))
             rr.append('\t' + str(d) + ' -> ' + ' | '.join(s))
         rules = '\n'.join(rr)
 
@@ -141,7 +141,7 @@ class Grammar:
                             for k in range(i, j):
                                 produced = produced or (Q[d1, i-1, k-1] and Q[d2, k, j-1])
                     Q[self.D._nodes.index(d), i-1, j-1] = produced
-        return Q, Q[0, 0, n-1]
+        return Q, Q[self.D.index(self.acsiom), 0, n-1]
 
     def CYK_parser(self, w):
         n = len(w)
@@ -178,11 +178,12 @@ def turn_to_HomskyForm(gramm):
         keys_list = list(new_grammar.P)
         rules = new_grammar.P[keys_list[j]]
         for rule in rules:
-            if type(rule) == tuple:
+            if type(rule) == tuple and len(rule) > 2:
                 k = len(rule)
                 for i in range(1, k-2):
                     newNonTerminal = chr(65+j) + str(i)
                     new_grammar.D.add(newNonTerminal)
+                    new_grammar.D.add(chr(65+j) + str(i+1))
                     new_grammar.P[newNonTerminal] = [(rule[i], chr(65+j) + str(i+1))]
                 newlastNonTerminal = chr(65+j) + str(k-2)
                 new_grammar.P[newlastNonTerminal] = [((rule[k-2]), (rule[k-1]))]
@@ -232,8 +233,8 @@ def turn_to_HomskyForm(gramm):
             del new_P[element]
     new_grammar.P = new_P
     #
-    # # 3) delete the chain prod rules:
-    # # to find unit pairs:
+    # # # 3) delete the chain prod rules:
+    # # # to find unit pairs:
     def unit_pairs_set(D, P):
         the_set = list((i, i) for i in D)
         for element in P:
@@ -253,15 +254,19 @@ def turn_to_HomskyForm(gramm):
             new_grammar.P[pair[0]].remove(pair[1])
             new_grammar.P[pair[0]] = new_grammar.P[pair[0]] + new_grammar.P[pair[1]]
             new_grammar.P[pair[0]] = list(set(new_grammar.P[pair[0]]))
-
-    # #4) delete useless elems:
-    #
-    # # delete non-generating non-terms
+    for element in new_grammar.P:
+        for rule in new_grammar.P[element]:
+            if type(rule) == tuple and len(rule) == 1:
+                new_grammar.P[element][new_grammar.P[element].index(rule)] = rule[0]
+    # # #4) delete useless elems:
+    # #
+    # # # delete non-generating non-terms
     set_of_generatings = set()
     set_of_generatings.add(new_grammar.acsiom)
     for element in new_grammar.P:
         for rule in new_grammar.P[element]:
             if type(rule) == tuple:
+                print(rule)
                 if rule[0] not in new_grammar.D and rule[1] not in new_grammar.D:
                         set_of_generatings.add(element)
             else:
@@ -272,7 +277,7 @@ def turn_to_HomskyForm(gramm):
         for element in new_grammar.P:
             for rule in new_grammar.P[element]:
                 if type(rule) == tuple:
-                    if rule[0] in set_of_generatings and rule[1] in set_of_generatings:
+                    if (rule[0] in set_of_generatings or rule[0] in new_grammar.X) and (rule[1] in set_of_generatings or rule[1] in new_grammar.X):
                         s.add(element)
                 else:
                     if rule in set_of_generatings:
@@ -304,7 +309,7 @@ def turn_to_HomskyForm(gramm):
                         new_list.remove(term)
                         new_grammar.P[element].remove(rule)
                         if not(len(new_list) == 1 and new_list[0] == element):
-                            new_grammar.P[element].append(tuple(new_list))
+                            new_grammar.P[element].append(new_list[0])
             else:
                 if rule not in set_of_generatings and rule in new_grammar.D:
                     new_grammar.P[element].remove(rule)
@@ -312,28 +317,19 @@ def turn_to_HomskyForm(gramm):
     for element in new_grammar.P.copy():
         if element not in found_elements:
             del new_grammar.P[element]
-
-    # #last shtrikh:
+    # # #last shtrikh:
     for item in new_grammar.X:
         S1 = 'Z' + str(new_grammar.X.index(item))
         for element in new_grammar.P.copy():
             for rule in new_grammar.P[element]:
-                if type(rule) == tuple and item in rule:
+                if type(rule) == tuple and item in rule and len(rule) > 1:
                     new_list = list(rule)
                     for i in range(2):
                         if rule[i] == item:
                             new_list[i] = S1
                             new_grammar.D.add(S1)
                     new_grammar.P[element][new_grammar.P[element].index(rule)] = tuple(new_list)
-        # lt = []
-        # lt.append(item)
-        new_grammar.P[S1] = [item]
-    # for element in new_grammar.P:
-    #     for rule in new_grammar.P[element]:
-    #         if len(rule) == 1:
-    #              new_grammar.P[element][new_grammar.P[element].index(rule)] = rule[0]
-    # for element in new_grammar.P.copy():
-        # new_grammar.P[element].remove(element)
+                    new_grammar.P[S1] = [item]
     return new_grammar
 
 def main():
@@ -347,19 +343,20 @@ def main():
     #     }
     # )
     arithm = Grammar(
-    X = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
-    D = {'D', 'O', 'F'},
-    acsiom = 'F',
+    X = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, '+', '-', '*', '/', '=' '(', ')', 'log', 'exp', 'sin', 'cos'},
+    D = { 'D', 'O', 'F', 'G', 'N'},
+    acsiom ='F',
     P={
-      'D': ['0', '1', '2', 3, 4, 5, 6, 7, 8, 9, ('D', 'D')],
-      'O': ['+', '-', '*', '/'],
-      'F': [('F', 'O', 'F'), 'D'],
+      'D': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ('D', 'D')],
+      'O': ['+', '-', '*', '/', '='],
+      'F': [('F', 'O', 'F'), 'G'],
+      'G': ['D', 'G', ('(', 'G', ')'), ('N', 'G'), ],
+      'N': ['log', 'exp', 'sin', 'cos']
    })
 
     G = turn_to_HomskyForm(arithm)
-    # print(G, G.P)
-    print(G.D)
-    print(G.CYK_recognizer('5+2+3')[1])
+    print(G)
+    print(G.CYK_recognizer('(2+3)')[1])
 
 
 
