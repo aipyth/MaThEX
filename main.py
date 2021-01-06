@@ -19,7 +19,10 @@ class Grammar:
         for d in self.P:
             s = []
             for ds in self.P[d]:
-                s.append(' '.join(ds))
+                if type(ds) == tuple:
+                    s.append(' '.join(ds))
+                else:
+                    s.append(ds)
             rr.append('\t' + str(d) + ' -> ' + ' | '.join(s))
         rules = '\n'.join(rr)
 
