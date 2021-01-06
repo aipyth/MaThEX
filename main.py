@@ -5,25 +5,21 @@ from utils import Set
 
 
 class Grammar:
-    X = Set()       # set of terminal symbols
-    D = Set()       # set of non-terminal symbols
-    acsiom = None   # acsiom
-    P = {}          # set of production rules
-
-
-    def __init__(self, X=Set(), D=Set(), acsiom=None, P={}):
+    def __init__(self, X={}, D={}, acsiom=None, P={}):
+        self.X = Set()
+        self.D = Set()
         self.add_terminal_symbols(X)
         self.add_nonterminal_symbols(D)
         self.set_acsiom(acsiom)
         self.set_prod_rules(P)
 
 
-    def add_terminal_symbols(self, tsymb):
+    def add_terminal_symbols(self, tsymb: set):
         for i in tsymb:
             self.X.add(i)
 
 
-    def add_nonterminal_symbols(self, ntsymb):
+    def add_nonterminal_symbols(self, ntsymb: set):
         for i in ntsymb:
             self.D.add(i)
 
@@ -151,6 +147,10 @@ class Grammar:
                         if lrule in C[i-1, k-1] and rrule in C[k, j-1]:
                             C[i-1, j-1].add(rule[0])
         return C
+
+
+    # def CYK_recognizer_modified(self, w):
+
 
 
 def turn_to_HomskyForm(gramm):
@@ -309,9 +309,9 @@ def turn_to_HomskyForm(gramm):
 def main():
     g = Grammar(
 
-        X = {'(', ')'},
-        D = {'d0', 'd1', 'd2', 'd3', 'd4'},
-        acsiom = 'd0',
+        # X = {'(', ')'},
+        # D = {'d0', 'd1', 'd2', 'd3', 'd4'},
+        # acsiom = 'd0',
         P = {
             'd0': [('d1', 'd1'), ('d2', 'd3')],
             'd1': [('d1', 'd1'), ('d2', 'd3')],
@@ -330,7 +330,19 @@ def main():
     # print(g.get_nonterm_prod_rules())
     # print(g.prod_rules_to_list())
     # print(g.get_nonterm_prod_rules())
+    # print(turn_to_HomskyForm(g).P)
 
+    # arithm = Grammar(P={
+    #     'digit': [(0), (1), (2), (3), (4), (5), (6), (7), (8), (9), ('digit', 'digit')],
+    #     'oper': [('+'), ('-'), ('*'), ('/')],
+    #     'formula': [('digit', 'f1')],
+    #     'f1': [('oper', 'digit')],
+    # })
+    # print(arithm.D)
+    # print(arithm.X)
+    # print(arithm.CYK_recognizer('8+9'))
+
+    # G = turn_to_HomskyForm(g)
     print(g.CYK_recognizer('()()'))
 
 
