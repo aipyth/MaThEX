@@ -93,6 +93,7 @@ class Grammar:
 
         for d in range(N):
             for i in range(n):
+                # for k in range(0, n-i, -1):
                 for k in range(n-i):
                     Q[d, i, i+k] = self.check_prod_rule((self.D[d], w[i:i+k+1]))
 
@@ -123,8 +124,10 @@ class Grammar:
 
         for d in self.P:
             for i in range(n):
-                if self.check_prod_rule((d, w[i])):
-                    C[i, i].add(d)
+                # for k in range(0, n-i, -1):
+                for k in range(n-i):
+                    if self.check_prod_rule((d, w[i:i+k+1])):
+                        C[i, i+k].add(d)
 
         for m in range(2, n+1):
             for i in range(1, n-m+2):
@@ -215,13 +218,13 @@ def turn_to_HomskyForm(gramm):
                                 the_set.append((item[0], rule))
         return the_set
     pairs_set = unit_pairs_set(new_grammar.D, new_grammar.P)
-    print(pairs_set)
+    # print(pairs_set)
     for pair in pairs_set:
         if pair[0] != pair[1]:
             # tupl = list()
             # tupl.append(pair[1])
             # tupl = tuple(tupl)
-            print(pair)
+            # print(pair)
             new_grammar.P[pair[0]].remove(pair[1])
             new_grammar.P[pair[0]] = new_grammar.P[pair[0]] + new_grammar.P[pair[1]]
             new_grammar.P[pair[0]] = list(set(new_grammar.P[pair[0]]))
@@ -353,6 +356,7 @@ def main():
     G = turn_to_HomskyForm(arithm)
     # print(G)
     print(G.CYK_recognizer('log(2)+2'))
+
 
 
 
