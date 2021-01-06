@@ -115,7 +115,7 @@ class Grammar:
             return 'this word is not produced by this grammar'
 
 
-    def CYK_recognizer(self, w):
+    def CYK_recognizer(self, w, ret_matrix=False):
         "Yakovliev Cock"
         N = len(self.D)
         n = len(w)
@@ -128,10 +128,7 @@ class Grammar:
         for d in range(N):
             for i in range(n):
                 for k in range(n-i):
-                    print(w[i:i+k+1], type(w[i:i+k+1]))
-                    print(self.check_prod_rule((self.D[d], w[i:i+k+1])))
-                    Q[d, i-k, i-k] = 1 if self.check_prod_rule((self.D[d], w[i:i+k+1])) else 0
-            print()
+                    Q[d, i, i+k] = self.check_prod_rule((self.D[d], w[i:i+k+1]))
 
         for m in range(2, n+1):
             for i in range(1, n-m+2):
@@ -146,8 +143,10 @@ class Grammar:
                             d2 = self.D.index(ds[1])
                             for k in range(i, j):
                                 produced = produced or (Q[d1, i-1, k-1] and Q[d2, k, j-1])
-                    Q[self.D._nodes.index(d), i-1, j-1] = produced
-        return Q, Q[self.D.index(self.acsiom), 0, n-1]
+                    Q[self.D.index(d), i-1, j-1] = Q[self.D.index(d), i-1, j-1] or produced
+        if ret_matrix:
+            return Q, Q[self.D.index(self.acsiom), 0, n-1]
+        else: return Q[self.D.index(self.acsiom), 0, n-1]
 
     def CYK_parser(self, w):
         n = len(w)
@@ -256,7 +255,7 @@ def turn_to_HomskyForm(gramm):
             # tupl = list()
             # tupl.append(pair[1])
             # tupl = tuple(tupl)
-            print(pair[1])
+            # print(pair[1])
             new_grammar.P[pair[0]].remove(pair[1])
             new_grammar.P[pair[0]] = new_grammar.P[pair[0]] + new_grammar.P[pair[1]]
             new_grammar.P[pair[0]] = list(set(new_grammar.P[pair[0]]))
@@ -272,7 +271,7 @@ def turn_to_HomskyForm(gramm):
     for element in new_grammar.P:
         for rule in new_grammar.P[element]:
             if type(rule) == tuple:
-                print(rule)
+                # print(rule)
                 if rule[0] not in new_grammar.D and rule[1] not in new_grammar.D:
                         set_of_generatings.add(element)
             else:
@@ -339,34 +338,34 @@ def turn_to_HomskyForm(gramm):
     return new_grammar
 
 def main():
-    g = Grammar(
-        X={"aa", "bb"},
-        D={'d0', 'd1', 'd2', 'd3', 'd4'},
-        acsiom='d0',
+    # g = Grammar(
+    #     X={"aa", "bb"},
+    #     D={'d0', 'd1', 'd2', 'd3', 'd4'},
+    #     acsiom='d0',
+    #     P={
+    #         'd0': [('d1', 'd1'), ('d2', 'd3')],
+    #         'd1': [('d1', 'd1'), ('d2', 'd3')],
+    #         'd2': [('aa')],
+    #         'd3': [('d1', 'd4'), 'bb'],
+    #         'd4': [('bb')],
+    #     }
+    # )
+    # print(g.CYK_recognizer("aabb"))
+    arithm = Grammar(
+        X = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/', '=', '(', ')', 'log', 'exp', 'sin', 'cos'},
+        D = { 'D', 'O', 'F', 'G', 'N'},
+        acsiom ='F',
         P={
-            'd0': [('d1', 'd1'), ('d2', 'd3')],
-            'd1': [('d1', 'd1'), ('d2', 'd3')],
-            'd2': [('aa')],
-            'd3': [('d1', 'd4'), 'bb'],
-            'd4': [('bb')],
-        }
-    )
-    print(g.CYK_recognizer("aabb"))
-#     arithm = Grammar(
-#     X = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/', '=', '(', ')', 'log', 'exp', 'sin', 'cos'},
-#     D = { 'D', 'O', 'F', 'G', 'N'},
-#     acsiom ='F',
-#     P={
-#       'D': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ('D', 'D')],
-#       'O': ['+', '-', '*', '/', '='],
-#       'F': [('F', 'O', 'F'), 'G'],
-#       'G': ['D', ('(', 'G', ')'), ('N', 'G'), ],
-#       'N': ['log', 'exp', 'sin', 'cos']
-#    })
+          'D': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ('D', 'D')],
+          'O': ['+', '-', '*', '/', '='],
+          'F': [('F', 'O', 'F'), 'G'],
+          'G': ['D', ('(', 'G', ')'), ('N', 'G'), ('G', 'O', 'G')],
+          'N': ['log', 'exp', 'sin', 'cos']
+   })
 
-#     G = turn_to_HomskyForm(arithm)
-#     print(G)
-#     print(G.CYK_recognizer('log(2)'))
+    G = turn_to_HomskyForm(arithm)
+    # print(G)
+    print(G.CYK_recognizer('cos(123)'))
 
 
 
