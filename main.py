@@ -70,9 +70,7 @@ class Grammar:
         if not ruled:
             return False
         else:
-            if type(ruled) == list:
-                return rule[1] in ruled
-            return rule[1] == ruled
+            return rule[1] in ruled
 
 
     def prod_rules_to_list(self):
@@ -123,9 +121,17 @@ class Grammar:
         n = len(w)
         Q = np.full((N, n, n), False, dtype=bool)
 
+        # for d in range(N):
+        #     for i in range(n):
+        #         Q[d, i, i] = 1 if self.check_prod_rule((self.D[d], w[i])) else 0
+
         for d in range(N):
             for i in range(n):
-                Q[d, i, i] = 1 if self.check_prod_rule((self.D[d], w[i])) else 0
+                for k in range(n-i):
+                    print(w[i:i+k+1], type(w[i:i+k+1]))
+                    print(self.check_prod_rule((self.D[d], w[i:i+k+1])))
+                    Q[d, i-k, i-k] = 1 if self.check_prod_rule((self.D[d], w[i:i+k+1])) else 0
+            print()
 
         for m in range(2, n+1):
             for i in range(1, n-m+2):
@@ -333,30 +339,34 @@ def turn_to_HomskyForm(gramm):
     return new_grammar
 
 def main():
-    # g = Grammar(
-    #     P={
-    #         'd0': [('d1', 'd1'), ('d2', 'd3')],
-    #         'd1': [('d1', 'd1'), ('d2', 'd3')],
-    #         'd2': [('(')],
-    #         'd3': [('d1', 'd4'), ')'],
-    #         'd4': [(')')],
-    #     }
-    # )
-    arithm = Grammar(
-    X = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/', '=', '(', ')', 'log', 'exp', 'sin', 'cos'},
-    D = { 'D', 'O', 'F', 'G', 'N'},
-    acsiom ='F',
-    P={
-      'D': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ('D', 'D')],
-      'O': ['+', '-', '*', '/', '='],
-      'F': [('F', 'O', 'F'), 'G'],
-      'G': ['D', ('(', 'G', ')'), ('N', 'G'), ],
-      'N': ['log', 'exp', 'sin', 'cos']
-   })
+    g = Grammar(
+        X={"aa", "bb"},
+        D={'d0', 'd1', 'd2', 'd3', 'd4'},
+        acsiom='d0',
+        P={
+            'd0': [('d1', 'd1'), ('d2', 'd3')],
+            'd1': [('d1', 'd1'), ('d2', 'd3')],
+            'd2': [('aa')],
+            'd3': [('d1', 'd4'), 'bb'],
+            'd4': [('bb')],
+        }
+    )
+    print(g.CYK_recognizer("aabb"))
+#     arithm = Grammar(
+#     X = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/', '=', '(', ')', 'log', 'exp', 'sin', 'cos'},
+#     D = { 'D', 'O', 'F', 'G', 'N'},
+#     acsiom ='F',
+#     P={
+#       'D': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ('D', 'D')],
+#       'O': ['+', '-', '*', '/', '='],
+#       'F': [('F', 'O', 'F'), 'G'],
+#       'G': ['D', ('(', 'G', ')'), ('N', 'G'), ],
+#       'N': ['log', 'exp', 'sin', 'cos']
+#    })
 
-    G = turn_to_HomskyForm(arithm)
-    print(G)
-    print(G.CYK_recognizer('log(2)')[1])
+#     G = turn_to_HomskyForm(arithm)
+#     print(G)
+#     print(G.CYK_recognizer('log(2)'))
 
 
 
