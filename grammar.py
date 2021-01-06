@@ -85,45 +85,11 @@ class Grammar:
         return list(filter(lambda x: len(x[1]) == 2, self.prod_rules_to_list()))
 
 
-    def CYK(self, w):
-        """
-        Cock-Younger-Kasami
-        """
-        # TODO: rework with new set of writing product rules or just delete this
-        # TODO: DELETE THIS
-        n = len(w)
-        N = len(self.D)
-        Q = np.full((n, n, N), False, dtype=bool)
-        for i in range(1, n+1):
-            for j in range(1, N+1):
-                if self.check_prod_rule((self.D[j-1], w[i-1])):
-                    Q[0, i-1, j-1] = True
-        for i in range(2, n+1):
-            for j in range(1, n-i+2):
-                for k in range(1, i):
-                    for element in self.P:
-                        a = int(element[1])
-                        for kortezh in self.P[element]:
-                            if type(kortezh) is tuple:
-                                b = int(kortezh[0][1])
-                                c = int(kortezh[1][1])
-                                if (Q[k-1, j-1, b] and Q[i-k-1, j+k-1, c]):
-                                    Q[i-1, j-1, a] = True
-        if Q[n-1, 0, 0]:
-            return 'this word is produced by this grammar'
-        else:
-            return 'this word is not produced by this grammar'
-
-
     def CYK_recognizer(self, w, ret_matrix=False):
         "Yakovliev Cock"
         N = len(self.D)
         n = len(w)
         Q = np.full((N, n, n), False, dtype=bool)
-
-        # for d in range(N):
-        #     for i in range(n):
-        #         Q[d, i, i] = 1 if self.check_prod_rule((self.D[d], w[i])) else 0
 
         for d in range(N):
             for i in range(n):
@@ -169,10 +135,6 @@ class Grammar:
                         if lrule in C[i-1, k-1] and rrule in C[k, j-1]:
                             C[i-1, j-1].add(rule[0])
         return C
-
-
-    # def CYK_recognizer_modified(self, w):
-
 
 
 def turn_to_HomskyForm(gramm):
