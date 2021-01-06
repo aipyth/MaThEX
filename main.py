@@ -19,7 +19,10 @@ class Grammar:
         for d in self.P:
             s = []
             for ds in self.P[d]:
-                s.append(' '.join(ds))
+                if type(ds) == tuple:
+                    s.append(' '.join(ds))
+                else:
+                    s.append(ds)
             rr.append('\t' + str(d) + ' -> ' + ' | '.join(s))
         rules = '\n'.join(rr)
 
@@ -131,7 +134,7 @@ class Grammar:
                     produced = False
                     for ds in self.P[d]:
                         # we check if this is nonterm rule
-                        if len(ds) == 2:
+                        if type(ds) == tuple:
                             di = self.D.index(d)
                             d1 = self.D.index(ds[0])
                             d2 = self.D.index(ds[1])
@@ -175,7 +178,7 @@ def turn_to_HomskyForm(gramm):
         keys_list = list(new_grammar.P)
         rules = new_grammar.P[keys_list[j]]
         for rule in rules:
-            if len(rule) > 2 and rule != 'eps':
+            if type(rule) == tuple:
                 k = len(rule)
                 for i in range(1, k-2):
                     newNonTerminal = chr(65+j) + str(i)
@@ -199,11 +202,11 @@ def turn_to_HomskyForm(gramm):
         S = s
         for element in new_grammar.P.copy():
             for rule in new_grammar.P[element]:
-                if len(rule) == 2:
+                if type(rule) == tuple:
                     if rule[0] in S and rule[1] in S:
                         s.add(element)
-                if len(rule) == 1:
-                    if rule[0] in S:
+                else:
+                    if rule in S:
                         s.add(element)
         if s == S:
             break
@@ -212,12 +215,13 @@ def turn_to_HomskyForm(gramm):
     for element in new_P.copy():
         rules = new_P[element]
         for rule in rules:
-            for symbol in rule:
-                if symbol in S and len(rule) > 1:
-                    temp = list(rule)
-                    temp.remove(symbol)
-                    new_rule = tuple(temp)
-                    rules.append(new_rule)
+            if type(rule) == tuple:
+                for symbol in rule:
+                    if symbol in S and len(rule) > 1:
+                        temp = list(rule)
+                        temp.remove(symbol)
+                        new_rule = tuple(temp)
+                        rules.append(new_rule)
 
         delete_reps = set(rules)
         new_P[element] = list(delete_reps)
@@ -234,7 +238,7 @@ def turn_to_HomskyForm(gramm):
         the_set = list((i, i) for i in D)
         for element in P:
             for rule in P[element]:
-                if len(rule) == 1 and rule[0] in D:
+                if rule in D:
                     for item in the_set:
                         if item[1] == element and (item[0], rule[0]) not in the_set:
                             the_set.append((item[0], rule[0]))
@@ -242,10 +246,11 @@ def turn_to_HomskyForm(gramm):
     pairs_set = unit_pairs_set(new_grammar.D, new_grammar.P)
     for pair in pairs_set:
         if pair[0] != pair[1]:
-            tupl = list()
-            tupl.append(pair[1])
-            tupl = tuple(tupl)
-            new_grammar.P[pair[0]].remove(tupl)
+            # tupl = list()
+            # tupl.append(pair[1])
+            # tupl = tuple(tupl)
+            print(pair[1])
+            new_grammar.P[pair[0]].remove(pair[1])
             new_grammar.P[pair[0]] = new_grammar.P[pair[0]] + new_grammar.P[pair[1]]
             new_grammar.P[pair[0]] = list(set(new_grammar.P[pair[0]]))
 
@@ -256,21 +261,21 @@ def turn_to_HomskyForm(gramm):
     set_of_generatings.add(new_grammar.acsiom)
     for element in new_grammar.P:
         for rule in new_grammar.P[element]:
-            if len(rule) > 1:
+            if type(rule) == tuple:
                 if rule[0] not in new_grammar.D and rule[1] not in new_grammar.D:
                         set_of_generatings.add(element)
-            if len(rule) == 1:
-                if rule[0] not in new_grammar.D:
+            else:
+                if rule not in new_grammar.D:
                         set_of_generatings.add(element)
     while True:
         s = set_of_generatings
         for element in new_grammar.P:
             for rule in new_grammar.P[element]:
-                if len(rule) > 1:
+                if type(rule) == tuple:
                     if rule[0] in set_of_generatings and rule[1] in set_of_generatings:
                         s.add(element)
                 else:
-                    if rule[0] in set_of_generatings:
+                    if rule in set_of_generatings:
                         s.add(element)
         if s == set_of_generatings:
             break
@@ -281,20 +286,29 @@ def turn_to_HomskyForm(gramm):
     for item in found_elements:
         if item in new_grammar.P:
             for rule in new_grammar.P[item]:
-                for term in rule:
-                    if term in new_grammar.D:
+                if type(rule) == tuple:
+                    for term in rule:
+                        if term in new_grammar.D:
+                            found_elements.add(term)
+                else:
+                    if rule in new_grammar.D:
                         found_elements.add(term)
 
     #delete them all!
     for element in new_grammar.P:
         for rule in new_grammar.P[element]:
-            for term in rule:
-                if term not in set_of_generatings and term in new_grammar.D:
-                    new_list = list(rule)
-                    new_list.remove(term)
+            if type(rule) == tuple:
+                for term in rule:
+                    if term not in set_of_generatings and term in new_grammar.D:
+                        new_list = list(rule)
+                        new_list.remove(term)
+                        new_grammar.P[element].remove(rule)
+                        if not(len(new_list) == 1 and new_list[0] == element):
+                            new_grammar.P[element].append(tuple(new_list))
+            else:
+                if rule not in set_of_generatings and rule in new_grammar.D:
                     new_grammar.P[element].remove(rule)
-                    if not(len(new_list) == 1 and new_list[0] == element):
-                        new_grammar.P[element].append(tuple(new_list))
+
     for element in new_grammar.P.copy():
         if element not in found_elements:
             del new_grammar.P[element]
@@ -304,7 +318,7 @@ def turn_to_HomskyForm(gramm):
         S1 = 'Z' + str(new_grammar.X.index(item))
         for element in new_grammar.P.copy():
             for rule in new_grammar.P[element]:
-                if len(rule) == 2 and item in rule:
+                if type(rule) == tuple and item in rule:
                     new_list = list(rule)
                     for i in range(2):
                         if rule[i] == item:
@@ -314,10 +328,10 @@ def turn_to_HomskyForm(gramm):
         # lt = []
         # lt.append(item)
         new_grammar.P[S1] = [item]
-    for element in new_grammar.P:
-        for rule in new_grammar.P[element]:
-            if len(rule) == 1:
-                 new_grammar.P[element][new_grammar.P[element].index(rule)] = rule[0]
+    # for element in new_grammar.P:
+    #     for rule in new_grammar.P[element]:
+    #         if len(rule) == 1:
+    #              new_grammar.P[element][new_grammar.P[element].index(rule)] = rule[0]
     # for element in new_grammar.P.copy():
         # new_grammar.P[element].remove(element)
     return new_grammar
@@ -332,43 +346,22 @@ def main():
     #         'd4': [(')')],
     #     }
     # )
-    g = Grammar(
+    arithm = Grammar(
+    X = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+    D = {'D', 'O', 'F'},
+    acsiom = 'F',
+    P={
+      'D': ['0', '1', '2', 3, 4, 5, 6, 7, 8, 9, ('D', 'D')],
+      'O': ['+', '-', '*', '/'],
+      'F': [('F', 'O', 'F'), 'D'],
+   })
 
-        X = {'(', ')'},
-        D = {'d0'},
-        acsiom = 'd0',
-        P = {
-            'd0': [('(', 'd0', ')'), ('d0', 'd0'), 'eps'],
-
-        }
-    )
-
-    # print(f"{g.CYK_recognizer('()(()())()')=}")
-    # print(f"{g.CYK_recognizer('()()')=}")
-    # print(f"{g.CYKY(')()()()()')=}")
-
-    # print(g.Q)
-    # print(g.CYK_parser('(()()())'))
-    # print(g.get_nonterm_prod_rules())
-    # print(g.prod_rules_to_list())
-    # print(g.get_nonterm_prod_rules())
-    # print(turn_to_HomskyForm(g).P)
-
-    # arithm = Grammar(P={
-    #     'digit': [(0), (1), (2), (3), (4), (5), (6), (7), (8), (9), ('digit', 'digit')],
-    #     'oper': [('+'), ('-'), ('*'), ('/')],
-    #     'formula': [('digit', 'f1')],
-    #     'f1': [('oper', 'digit')],
-    # })
-    # print(arithm.D)
-    # print(arithm.X)
-    # print(arithm.CYK_recognizer('8+9'))
-
-    G = turn_to_HomskyForm(g)
-    print(G, G.P)
-    print(G.CYK_recognizer('()')[1])
+    G = turn_to_HomskyForm(arithm)
+    # print(G, G.P)
+    print(G.D)
+    print(G.CYK_recognizer('5+2+3')[1])
 
 
 
 if __name__ == '__main__':
-    main() 
+    main()
