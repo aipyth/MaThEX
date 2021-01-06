@@ -20,9 +20,9 @@ class Grammar:
             s = []
             for ds in self.P[d]:
                 if type(ds) == tuple:
-                    s.append(' '.join(ds))
+                    s.append(' '.join(tuple(map(str, ds))))
                 else:
-                    s.append(ds)
+                    s.append(str(ds))
             rr.append('\t' + str(d) + ' -> ' + ' | '.join(s))
         rules = '\n'.join(rr)
 
