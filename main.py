@@ -182,19 +182,19 @@ def turn_to_HomskyForm(gramm):
     for j in range(len(new_grammar.P)):
         keys_list = list(new_grammar.P)
         rules = new_grammar.P[keys_list[j]]
-        for rule in rules:
-            if type(rule) == tuple and len(rule) > 2:
-                k = len(rule)
+        for m in range(len(rules)):
+            if type(rules[m]) == tuple and len(rules[m]) > 2:
+                k = len(rules[m])
                 for i in range(1, k-2):
-                    newNonTerminal = chr(65+j) + str(i)
+                    newNonTerminal = chr(65+j) + str(i+m)
                     new_grammar.D.add(newNonTerminal)
-                    new_grammar.D.add(chr(65+j) + str(i+1))
-                    new_grammar.P[newNonTerminal] = [(rule[i], chr(65+j) + str(i+1))]
-                newlastNonTerminal = chr(65+j) + str(k-2)
-                new_grammar.P[newlastNonTerminal] = [((rule[k-2]), (rule[k-1]))]
+                    new_grammar.D.add(chr(65+j) + str(i+1+m))
+                    new_grammar.P[newNonTerminal] = [(rules[m][i], chr(65+j) + str(i+1))]
+                newlastNonTerminal = chr(65+j) + str(k-2+m)
+                new_grammar.P[newlastNonTerminal] = [((rules[m][k-2]), (rules[m][k-1]))]
                 new_grammar.D.add(newlastNonTerminal)
-                rules.append((rule[0], chr(65+j) + str(1)))
-                rules.remove(rule)
+                rules.append((rules[m][0], chr(65+j) + str(1+m)))
+                rules.remove(rules[m])
 
     # 2) delete epsilon-rules:
     # to find rules A => eps:
