@@ -14,6 +14,20 @@ class Grammar:
         self.set_prod_rules(P)
 
 
+    def __repr__(self):
+        rr = []
+        for d in self.P:
+            s = []
+            for ds in self.P[d]:
+                s.append(' '.join(ds))
+            rr.append('\t' + str(d) + ' -> ' + ' | '.join(s))
+        rules = '\n'.join(rr)
+
+
+        return f"<Grammar>:\nTerminal symbols: {self.X}\nNonterminal symbols: {self.D}\nAcsiom: {self.acsiom}\nRules:\n{rules}"
+
+
+
     def add_terminal_symbols(self, tsymb: set):
         for i in tsymb:
             self.X.add(i)
@@ -297,32 +311,40 @@ def turn_to_HomskyForm(gramm):
                             new_list[i] = S1
                             new_grammar.D.add(S1)
                     new_grammar.P[element][new_grammar.P[element].index(rule)] = tuple(new_list)
-
-        new_grammar.P[S1] = [(item)]
-    for element in new_grammar.P.copy():
-        lst = []
-        lst.append(element)
-        if tuple(lst) in new_grammar.P[element]:
-            new_grammar.P[element].remove(tuple(lst))
+        # lt = []
+        # lt.append(item)
+        new_grammar.P[S1] = [item]
+    for element in new_grammar.P:
+        for rule in new_grammar.P[element]:
+            if len(rule) == 1:
+                 new_grammar.P[element][new_grammar.P[element].index(rule)] = rule[0]
+    # for element in new_grammar.P.copy():
+        # new_grammar.P[element].remove(element)
     return new_grammar
 
 def main():
+    # g = Grammar(
+    #     P={
+    #         'd0': [('d1', 'd1'), ('d2', 'd3')],
+    #         'd1': [('d1', 'd1'), ('d2', 'd3')],
+    #         'd2': [('(')],
+    #         'd3': [('d1', 'd4'), ')'],
+    #         'd4': [(')')],
+    #     }
+    # )
     g = Grammar(
 
-        # X = {'(', ')'},
-        # D = {'d0', 'd1', 'd2', 'd3', 'd4'},
-        # acsiom = 'd0',
+        X = {'(', ')'},
+        D = {'d0'},
+        acsiom = 'd0',
         P = {
-            'd0': [('d1', 'd1'), ('d2', 'd3')],
-            'd1': [('d1', 'd1'), ('d2', 'd3')],
-            'd2': [('(')],
-            'd3': [('d1', 'd4'), ')'],
-            'd4': [(')')]
+            'd0': [('(', 'd0', ')'), ('d0', 'd0'), 'eps'],
+
         }
     )
 
     # print(f"{g.CYK_recognizer('()(()())()')=}")
-    # print(f"{g.CYK_recognizer('()')=}")
+    # print(f"{g.CYK_recognizer('()()')=}")
     # print(f"{g.CYKY(')()()()()')=}")
 
     # print(g.Q)
@@ -342,10 +364,11 @@ def main():
     # print(arithm.X)
     # print(arithm.CYK_recognizer('8+9'))
 
-    # G = turn_to_HomskyForm(g)
-    print(g.CYK_recognizer('()()'))
+    G = turn_to_HomskyForm(g)
+    print(G, G.P)
+    print(G.CYK_recognizer('()')[1])
 
 
 
 if __name__ == '__main__':
-    main()
+    main() 
