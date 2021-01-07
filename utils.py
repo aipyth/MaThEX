@@ -82,7 +82,7 @@ class Tree:
     def __repr__(self):
         for root in self._get_roots():
             self.tree_travesal(root)
-
+        print()
         return f"Vertexes: {self.V}\nEdges: {self.E}"
 
 
