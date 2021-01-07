@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 class Set:
     def __init__(self):
         self._nodes = []
@@ -43,16 +45,20 @@ class Set:
 
 
 class TreeNode:
-    def __init__(self, data=None, next=None, prev=None):
+    def __init__(self, data=None, next=None, prev=None, id=None):
         self.data = data
         self.next = next
         self.prev = prev
+        self.id = id if id else uuid4()
 
     def __repr__(self):
-        # prev = self.prev if self.prev else ''
-        # next = self.prev if self.next else ''
-        # return f"[node {prev}->({self.data})->{next} ]"
-        return f"[node {self.data}]"
+        prev = f"({self.prev.id}, {self.prev.data})" if self.prev else ''
+        next = f"({self.next.id}, {self.next.data})" if self.next else ''
+        return f"[node {prev}->({self.id, self.data})->{next} ]"
+        # return f"[node {self.id} \"{self.data}\"]"
+
+    def __eq__(self, obj):
+        return self.id == obj.id
 
 
 class Tree:
@@ -61,16 +67,16 @@ class Tree:
         self.E = Set()
 
     def __repr__(self):
-        return f"Vertices: {self.V}\nEdges: {self.E}"
+        return f"Vertexes: {self.V}\nEdges: {self.E}"
 
 
-    def add_v(self, v):
+    def add_vertex(self, v, next=None, prev=None, id=None):
         if type(v) == TreeNode:
             return self.V.add(v)
         else:
-            return self.V.add(TreeNode(v))
+            return self.V.add(TreeNode(v, next, prev, id))
 
-    def add_e(self, a: TreeNode, b: TreeNode):
+    def add_edge(self, a: TreeNode, b: TreeNode):
         a.next, b.prev = b, a
         self.E.add((a, b))
 
@@ -82,11 +88,15 @@ class Forest:
 
 def main():
     t = Tree()
-    a = t.add_v('a')
-    b = t.add_v('b')
-    t.add_e(a, b)
+    a = t.add_vertex('a', id=1)
+    a1 = t.add_vertex('a', id=4)
+    b = t.add_vertex('b')
+    t.add_edge(a, b)
+    t.add_edge(b, a1)
 
     print(t)
+
+    print("node a: ", a)
 
 if __name__ == '__main__':
     main()
